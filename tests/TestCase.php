@@ -24,6 +24,12 @@ class TestCase extends Orchestra
     protected function defineDatabaseMigrations(): void
     {
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
+        // Minimal users table for test fixtures
+        \Illuminate\Support\Facades\Schema::create('users', function (\Illuminate\Database\Schema\Blueprint $table) {
+            $table->id();
+            $table->string('name')->default('Test User');
+        });
     }
 
     protected function getEnvironmentSetUp($app): void
