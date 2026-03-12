@@ -4,7 +4,6 @@ namespace Lchris44\EmailPreferenceCenter;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Lchris44\EmailPreferenceCenter\Http\Controllers\UnsubscribeController;
 use Lchris44\EmailPreferenceCenter\Support\CategoryRegistry;
 
 class EmailPreferenceCenterServiceProvider extends ServiceProvider
@@ -52,16 +51,9 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
             return;
         }
 
-        $path = config('email-preferences.dashboard.path', 'email-preferences');
         $middleware = config('email-preferences.dashboard.middleware', ['web']);
 
-        Route::middleware($middleware)->group(function () use ($path) {
-            Route::get("{$path}/unsubscribe", [UnsubscribeController::class, 'show'])
-                ->name('email-preferences.unsubscribe');
-
-            Route::post("{$path}/unsubscribe", [UnsubscribeController::class, 'handle'])
-                ->name('email-preferences.unsubscribe.post');
-        });
+        Route::middleware($middleware)->group(__DIR__ . '/../routes/web.php');
     }
 
     // ------------------------------------------------------------------
@@ -85,6 +77,10 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../resources/views/' => resource_path('views/vendor/email-preferences'),
         ], 'email-preferences-views');
+
+        $this->publishes([
+            __DIR__ . '/../routes/web.php' => base_path('routes/email-preferences.php'),
+        ], 'email-preferences-routes');
 
         $this->publishes([
             __DIR__ . '/../config/email-preferences.php'  => config_path('email-preferences.php'),
