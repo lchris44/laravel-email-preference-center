@@ -30,7 +30,7 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent()->index();
 
             // morphs() already creates (notifiable_type, notifiable_id) index
-            $table->index(['notifiable_type', 'notifiable_id', 'category']);
+            $table->index(['notifiable_type', 'notifiable_id', 'category'], 'epl_notifiable_category_idx');
         });
     }
 
