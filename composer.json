@@ -1,0 +1,48 @@
+{
+    "name": "lchris44/laravel-email-preference-center",
+    "description": "Per-category email preferences, frequency controls, one-click unsubscribe, and GDPR consent logging for Laravel.",
+    "keywords": ["laravel", "email", "preferences", "unsubscribe", "gdpr", "consent", "notifications"],
+    "homepage": "https://github.com/lchris44/laravel-email-preference-center",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lenos Christodoulou",
+            "email": "lenocch16@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/contracts": "^10.0|^11.0|^12.0",
+        "illuminate/support": "^10.0|^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.0|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lchris44\\EmailPreferenceCenter\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Lchris44\\EmailPreferenceCenter\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Lchris44\\EmailPreferenceCenter\\EmailPreferenceCenterServiceProvider"
+            ],
+            "aliases": {
+                "EmailPreferences": "Lchris44\\EmailPreferenceCenter\\Facades\\EmailPreferences"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

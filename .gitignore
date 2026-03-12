@@ -1,0 +1,9 @@
+vendor/
+.env
+.phpunit.result.cache
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.iml
