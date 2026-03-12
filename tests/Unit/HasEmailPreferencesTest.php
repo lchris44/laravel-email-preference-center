@@ -164,6 +164,11 @@ class HasEmailPreferencesTest extends TestCase
         $this->assertNotNull($log);
     }
 
+    public function test_was_subscribed_to_returns_false_with_no_history(): void
+    {
+        $this->assertFalse($this->user->wasSubscribedTo('marketing', '2026-01-01'));
+    }
+
     public function test_was_subscribed_to_returns_correct_value_for_date(): void
     {
         \Carbon\Carbon::setTestNow('2026-01-01 10:00:00');
@@ -174,8 +179,9 @@ class HasEmailPreferencesTest extends TestCase
 
         \Carbon\Carbon::setTestNow(null);
 
-        $this->assertTrue($this->user->wasSubscribedTo('marketing', '2026-01-15'));
-        $this->assertFalse($this->user->wasSubscribedTo('marketing', '2026-02-15'));
+        $this->assertFalse($this->user->wasSubscribedTo('marketing', '2025-12-31'));  // before any action
+        $this->assertTrue($this->user->wasSubscribedTo('marketing', '2026-01-15'));   // after subscribe
+        $this->assertFalse($this->user->wasSubscribedTo('marketing', '2026-02-15')); // after unsubscribe
     }
 
     public function test_last_consent_for_returns_most_recent_log(): void

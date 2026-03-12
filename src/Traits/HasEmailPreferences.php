@@ -178,7 +178,7 @@ trait HasEmailPreferences
             ->first();
 
         if (! $lastEntry) {
-            return true; // no history = default subscribed
+            return false; // no history = never explicitly consented
         }
 
         return in_array($lastEntry->action, ['subscribed', 'frequency_changed'], true);
