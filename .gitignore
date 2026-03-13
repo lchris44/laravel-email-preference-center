@@ -1,9 +1,16 @@
-vendor/
-.env
+composer.lock
+/vendor
+/node_modules
+.phpunit.cache
 .phpunit.result.cache
+/build
+/coverage
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+/.idea
+/.fleet
+/.vscode
+phpunit.xml
+phpstan.neon
 .DS_Store
-
-# IDE
-.idea/
-.vscode/
-*.iml

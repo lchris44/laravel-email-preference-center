@@ -32,18 +32,10 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
         $this->registerRoutes();
     }
 
-    // ------------------------------------------------------------------
-    // Views
-    // ------------------------------------------------------------------
-
     protected function registerViews(): void
     {
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'email-preferences');
     }
-
-    // ------------------------------------------------------------------
-    // Routes
-    // ------------------------------------------------------------------
 
     protected function registerRoutes(): void
     {
@@ -55,10 +47,6 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
 
         Route::middleware($middleware)->group(__DIR__ . '/../routes/web.php');
     }
-
-    // ------------------------------------------------------------------
-    // Publishables
-    // ------------------------------------------------------------------
 
     protected function registerPublishables(): void
     {

@@ -13,8 +13,7 @@
     ],
     "require": {
         "php": "^8.2",
-        "illuminate/contracts": "^10.0|^11.0|^12.0",
-        "illuminate/support": "^10.0|^11.0|^12.0"
+        "illuminate/contracts": "^10.0|^11.0|^12.0"
     },
     "require-dev": {
         "orchestra/testbench": "^8.0|^9.0|^10.0",
@@ -30,6 +29,13 @@
             "Lchris44\\EmailPreferenceCenter\\Tests\\": "tests/"
         }
     },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html build/coverage"
+    },
+    "config": {
+        "sort-packages": true
+    },
     "extra": {
         "laravel": {
             "providers": [
@@ -39,9 +45,6 @@
                 "EmailPreferences": "Lchris44\\EmailPreferenceCenter\\Facades\\EmailPreferences"
             }
         }
-    },
-    "config": {
-        "sort-packages": true
     },
     "minimum-stability": "dev",
     "prefer-stable": true
