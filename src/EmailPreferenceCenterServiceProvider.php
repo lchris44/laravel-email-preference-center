@@ -2,8 +2,10 @@
 
 namespace Lchris44\EmailPreferenceCenter;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Lchris44\EmailPreferenceCenter\Console\Commands\SendDigestsCommand;
 use Lchris44\EmailPreferenceCenter\Support\CategoryRegistry;
 
 class EmailPreferenceCenterServiceProvider extends ServiceProvider
@@ -30,6 +32,8 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
         $this->registerPublishables();
         $this->registerViews();
         $this->registerRoutes();
+        $this->registerCommands();
+        $this->registerSchedule();
     }
 
     protected function registerViews(): void
@@ -46,6 +50,28 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
         $middleware = config('email-preferences.dashboard.middleware', ['web']);
 
         Route::middleware($middleware)->group(__DIR__ . '/../routes/web.php');
+    }
+
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([SendDigestsCommand::class]);
+        }
+    }
+
+    protected function registerSchedule(): void
+    {
+        if (! config('email-preferences.auto_schedule', true)) {
+            return;
+        }
+
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+            $daily  = config('email-preferences.digest_schedules.daily', '0 8 * * *');
+            $weekly = config('email-preferences.digest_schedules.weekly', '0 8 * * 1');
+
+            $schedule->command('email-preferences:send-digests daily')->cron($daily);
+            $schedule->command('email-preferences:send-digests weekly')->cron($weekly);
+        });
     }
 
     protected function registerPublishables(): void
