@@ -32,7 +32,6 @@ class SignedUnsubscribeUrl
     public static function generateForCenter(mixed $notifiable): string
     {
         $expiryDays = config('email-preferences.signed_url_expiry_days', 30);
-        $path       = config('email-preferences.dashboard.path', 'email-preferences');
 
         return URL::temporarySignedRoute(
             'email-preferences.center',
