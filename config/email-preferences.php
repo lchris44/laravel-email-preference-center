@@ -111,6 +111,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Notification Category Map
+    |--------------------------------------------------------------------------
+    | Map notification class names to email preference categories.
+    | Use this as an alternative to the #[EmailCategory] attribute or the
+    | HasEmailCategory interface — useful for third-party notifications you
+    | cannot modify.
+    |
+    | Example:
+    |   \App\Notifications\InvoicePaidNotification::class => 'billing',
+    |   \App\Notifications\NewsletterNotification::class  => 'marketing',
+    */
+    'notification_categories' => [
+        // \App\Notifications\ExampleNotification::class => 'marketing',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Dashboard
     |--------------------------------------------------------------------------
     | Route settings for the preference center page.

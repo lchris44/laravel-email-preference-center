@@ -6,10 +6,15 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Notifications\ChannelManager;
+use Illuminate\Notifications\Channels\MailChannel;
+use Lchris44\EmailPreferenceCenter\Channels\EmailPreferenceChannel;
 use Lchris44\EmailPreferenceCenter\Console\Commands\SendDigestsCommand;
+use Lchris44\EmailPreferenceCenter\Console\Commands\SeedPreferencesCommand;
 use Lchris44\EmailPreferenceCenter\Events\DigestReadyToSend;
 use Lchris44\EmailPreferenceCenter\Listeners\SendDigestListener;
 use Lchris44\EmailPreferenceCenter\Support\CategoryRegistry;
+use Lchris44\EmailPreferenceCenter\Support\NotificationCategoryResolver;
 
 class EmailPreferenceCenterServiceProvider extends ServiceProvider
 {
@@ -28,6 +33,8 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
         );
 
         $this->app->alias(EmailPreferenceCenterManager::class, 'email-preferences');
+
+        $this->app->singleton(NotificationCategoryResolver::class);
     }
 
     public function boot(): void
@@ -39,6 +46,7 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
         $this->registerCommands();
         $this->registerSchedule();
         $this->registerDigestListener();
+        $this->registerNotificationChannel();
     }
 
     protected function registerViews(): void
@@ -65,7 +73,7 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
     protected function registerCommands(): void
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([SendDigestsCommand::class]);
+            $this->commands([SendDigestsCommand::class, SeedPreferencesCommand::class]);
         }
     }
 
@@ -87,6 +95,13 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
     protected function registerDigestListener(): void
     {
         Event::listen(DigestReadyToSend::class, SendDigestListener::class);
+    }
+
+    protected function registerNotificationChannel(): void
+    {
+        $this->callAfterResolving(ChannelManager::class, function (ChannelManager $manager) {
+            $manager->extend('email-preferences', fn ($app) => $app->make(EmailPreferenceChannel::class));
+        });
     }
 
     protected function registerPublishables(): void

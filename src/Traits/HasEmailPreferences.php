@@ -3,6 +3,8 @@
 namespace Lchris44\EmailPreferenceCenter\Traits;
 
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Lchris44\EmailPreferenceCenter\Events\PreferenceUpdated;
+use Lchris44\EmailPreferenceCenter\Events\UserUnsubscribed;
 use Lchris44\EmailPreferenceCenter\Models\EmailPreference;
 use Lchris44\EmailPreferenceCenter\Models\EmailPreferenceLog;
 use Lchris44\EmailPreferenceCenter\Support\CategoryRegistry;
@@ -205,5 +207,11 @@ trait HasEmailPreferences
             'ip_address' => request()?->ip(),
             'user_agent' => request()?->userAgent(),
         ]);
+
+        event(new PreferenceUpdated($this, $category, $action, $via));
+
+        if ($action === 'unsubscribed') {
+            event(new UserUnsubscribed($this, $category, $via));
+        }
     }
 }

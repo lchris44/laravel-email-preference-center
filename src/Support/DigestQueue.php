@@ -2,6 +2,7 @@
 
 namespace Lchris44\EmailPreferenceCenter\Support;
 
+use Lchris44\EmailPreferenceCenter\Events\DigestQueued;
 use Lchris44\EmailPreferenceCenter\Events\DigestReadyToSend;
 use Lchris44\EmailPreferenceCenter\Models\PendingDigestItem;
 
@@ -38,6 +39,8 @@ class DigestQueue
 
         if ($frequency === 'instant') {
             event(new DigestReadyToSend($notifiable, $category, $frequency));
+        } else {
+            event(new DigestQueued($notifiable, $category, $frequency, $type));
         }
     }
 }

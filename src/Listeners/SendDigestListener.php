@@ -4,6 +4,7 @@ namespace Lchris44\EmailPreferenceCenter\Listeners;
 
 use Illuminate\Support\Facades\Mail;
 use Lchris44\EmailPreferenceCenter\Events\DigestReadyToSend;
+use Lchris44\EmailPreferenceCenter\Events\DigestSent;
 use Lchris44\EmailPreferenceCenter\Models\PendingDigestItem;
 
 class SendDigestListener
@@ -44,5 +45,7 @@ class SendDigestListener
             ->where('category', $event->category)
             ->where('frequency', $event->frequency)
             ->delete();
+
+        event(new DigestSent($notifiable, $event->category, $event->frequency, $items->count()));
     }
 }
