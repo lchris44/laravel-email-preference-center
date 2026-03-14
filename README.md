@@ -6,7 +6,7 @@ Give your users control over which emails they receive and how often, with one-c
 [![Total Downloads](https://img.shields.io/packagist/dt/lchris44/laravel-email-preference-center.svg)](https://packagist.org/packages/lchris44/laravel-email-preference-center)
 [![License](https://img.shields.io/packagist/l/lchris44/laravel-email-preference-center.svg)](https://packagist.org/packages/lchris44/laravel-email-preference-center)
 
-![Demo](docs/preference-center.gif)
+![Demo](docs/demo.gif)
 
 ## Documentation
 
