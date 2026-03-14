@@ -10,14 +10,14 @@ Give your users control over which emails they receive and how often, with one-c
 
 ## Documentation
 
-- [Installation](../../wiki/Installation)
-- [Configuration](../../wiki/Configuration)
-- [Categories](../../wiki/Categories)
-- [Checking Preferences](../../wiki/Checking-Preferences)
-- [Unsubscribe Links and Headers](../../wiki/Unsubscribe-Links-and-Headers)
-- [Preference Center](../../wiki/Preference-Center)
-- [Digest Batching](../../wiki/Digest-Batching)
-- [GDPR Consent Log](../../wiki/GDPR-Consent-Log)
+- [Installation](#installation)
+- [Setup](#setup)
+- [Checking Preferences](#checking-preferences)
+- [Unsubscribe Links and Headers](#unsubscribe-links-and-headers)
+- [Preference Center](#preference-center)
+- [Digest Batching](#digest-batching)
+- [Managing Preferences Programmatically](#managing-preferences-programmatically)
+- [GDPR Consent Log](#gdpr-consent-log)
 
 ## Features
 
