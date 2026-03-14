@@ -185,6 +185,7 @@ class EventsTest extends TestCase
 
     public function test_digest_queued_not_fired_for_instant_frequency(): void
     {
+        Mail::fake(); // prevent SendDigestListener from hitting a real mail server
         Event::fake([DigestQueued::class]);
 
         $this->user->subscribe('digest');
