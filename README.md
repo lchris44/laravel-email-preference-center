@@ -12,7 +12,8 @@ Give your users control over which emails they receive and how often, with one-c
 
 - [Installation](#installation)
 - [Setup](#setup)
-- [Checking Preferences](#checking-preferences)
+- [Notification Channel](#notification-channel)
+- [Checking Preferences Manually](#checking-preferences-manually)
 - [Unsubscribe Links and Headers](#unsubscribe-links-and-headers)
 - [Preference Center](#preference-center)
 - [Digest Batching](#digest-batching)
@@ -21,13 +22,15 @@ Give your users control over which emails they receive and how often, with one-c
 
 ## Features
 
+- **Notification channel** — swap `'mail'` for `'email-preferences'` and the package handles the rest
+- **Category declaration** via PHP attribute, interface, or config map — category lives with the notification
 - Per-category email preferences with required (locked) and optional categories
 - Frequency controls per category: instant, daily digest, weekly digest, or never
 - One-click unsubscribe via signed URLs, no login required
 - Automatic `List-Unsubscribe` and `List-Unsubscribe-Post` headers (Gmail/Yahoo 2024 compliance)
-- Built-in digest batching with `DigestQueue::dispatch()` - one call handles instant send and daily/weekly queuing
-- Queue support for digest emails - set `digest_queue` to dispatch via Laravel's queue worker
-- GDPR consent log - every change recorded with timestamp, IP, and source
+- Built-in digest batching — one call handles instant send and daily/weekly queuing
+- Queue support for digest emails
+- GDPR consent log — every change recorded with timestamp, IP, and source
 - Self-service preference center UI included
 - Works with any notifiable model, not just `User`
 
@@ -87,14 +90,109 @@ In `config/email-preferences.php`:
 ],
 ```
 
-## Checking Preferences
+---
+
+## Notification Channel
+
+The package registers an `'email-preferences'` notification channel. Swap it in place of `'mail'` and the package automatically:
+
+- Checks whether the user has opted out of that category
+- Sends immediately if their frequency is `instant`
+- Queues into the digest pipeline if their frequency is `daily` or `weekly`
+- Silently drops the notification if they've unsubscribed or set frequency to `never`
+
+You write zero preference-checking logic.
+
+### Declare a category on your notification
+
+Choose whichever approach fits your style. All three are equivalent.
+
+**Option 1 — PHP attribute** *(recommended)*
+
+```php
+use Lchris44\EmailPreferenceCenter\Attributes\EmailCategory;
+
+#[EmailCategory('marketing')]
+class NewsletterNotification extends Notification
+{
+    public function via(object $notifiable): array
+    {
+        return ['email-preferences'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)
+            ->subject('What\'s new this month')
+            ->line('Here is your monthly update...');
+    }
+}
+```
+
+**Option 2 — Interface**
+
+```php
+use Lchris44\EmailPreferenceCenter\Contracts\HasEmailCategory;
+
+class NewsletterNotification extends Notification implements HasEmailCategory
+{
+    public function emailCategory(): string
+    {
+        return 'marketing';
+    }
+
+    public function via(object $notifiable): array
+    {
+        return ['email-preferences'];
+    }
+}
+```
+
+**Option 3 — Config map** *(for third-party notifications you cannot modify)*
+
+```php
+// config/email-preferences.php
+'notification_categories' => [
+    \Cashier\Notifications\PaymentFailed::class => 'billing',
+    \App\Notifications\NewsletterNotification::class => 'marketing',
+],
+```
+
+### How the channel routes each notification
+
+```
+$user->notify(new NewsletterNotification())
+              │
+              ▼
+    EmailPreferenceChannel
+              │
+              ├─ No category declared? ──────────────► send via mail (unchanged)
+              │
+              ├─ prefersEmail('marketing') = false? ──► drop silently
+              │
+              ├─ frequency = 'instant' ───────────────► send via mail immediately
+              │
+              └─ frequency = 'daily' / 'weekly' ──────► queue into digest pipeline
+```
+
+### Notifications without a category
+
+If a notification has no category declared (no attribute, interface, or config map entry), the channel falls through to normal mail sending. Existing notifications without a category are never broken.
+
+### Notifications that return a Mailable
+
+If `toMail()` returns a `Mailable` instance instead of a `MailMessage`, the notification is always sent immediately — `Mailable` instances cannot be serialized into the digest pipeline.
+
+---
+
+## Checking Preferences Manually
+
+If you are sending via `Mail::to()->send()` directly rather than through the notification channel, check preferences yourself before sending:
 
 ```php
 $user->prefersEmail('marketing');       // true or false
 $user->emailFrequency('digest');        // 'instant', 'daily', 'weekly', or 'never'
 ```
-
-Always check `prefersEmail()` before sending:
 
 ```php
 if (! $user->prefersEmail('marketing')) {
@@ -103,6 +201,8 @@ if (! $user->prefersEmail('marketing')) {
 
 Mail::to($user)->send(new MarketingMail($user));
 ```
+
+---
 
 ## Unsubscribe Links and Headers
 
@@ -139,9 +239,11 @@ The `$unsubscribeUrl` variable is available in your Blade view:
 <a href="{!! $unsubscribeUrl !!}">Unsubscribe</a>
 ```
 
+---
+
 ## Preference Center
 
-A self-service page where users manage all their categories at once. Access is via a signed URL. No login required.
+A self-service page where users manage all their categories at once. Access is via a signed URL — no login required.
 
 ### Generate a link
 
@@ -159,16 +261,19 @@ php artisan vendor:publish --tag=email-preferences-views
 
 This copies the view to `resources/views/vendor/email-preferences/preference-center.blade.php`.
 
+---
+
 ## Digest Batching
 
-The package handles the entire digest pipeline for you. One call routes each user to an immediate send or a scheduled batch, depending on their chosen frequency.
+The package handles the entire digest pipeline. One call routes each user to an immediate send or a scheduled batch based on their chosen frequency.
+
+> If you are using the **notification channel**, the digest pipeline is wired automatically — `DigestQueue::dispatch()` is called for you when a user's frequency is `daily` or `weekly`. The steps below apply when dispatching digest items directly, without a notification.
 
 ### 1. Set the mailable
 
-In `config/email-preferences.php`, point to your mailable (or keep the package default):
+In `config/email-preferences.php`:
 
 ```php
-// Default - works out of the box, publish to customise
 'digest_mailable' => \Lchris44\EmailPreferenceCenter\Mail\DigestMail::class,
 ```
 
@@ -185,36 +290,18 @@ php artisan vendor:publish --tag=email-preferences-digest
 ```php
 use Lchris44\EmailPreferenceCenter\Support\DigestQueue;
 
-class YourEventListener
-{
-    public function handle(YourEvent $event): void
-    {
-        DigestQueue::dispatch($user, 'digest', 'your_type', [
-            'title' => $event->title,
-            'body'  => $event->body,
-        ]);
-    }
-}
+DigestQueue::dispatch($user, 'digest', 'your_type', [
+    'title' => $event->title,
+    'body'  => $event->body,
+]);
 ```
 
 `DigestQueue::dispatch()` handles everything:
 - Skips users who have opted out
-- **Instant** - saves the item and fires `DigestReadyToSend` immediately
-- **Daily / Weekly** - saves the item. The artisan command sends it later
-
-### 3. Register your listener
-
-In `AppServiceProvider`:
-
-```php
-Event::listen(YourEvent::class, YourEventListener::class);
-```
-
-> `DigestReadyToSend → SendDigestListener` is auto-registered by the package. You do not need to wire it up.
+- **Instant** — saves the item and fires `DigestReadyToSend` immediately
+- **Daily / Weekly** — saves the item; the scheduled command sends it later
 
 ### Queue support
-
-To send digest emails via the queue worker, set `digest_queue` to the queue name:
 
 ```php
 // config/email-preferences.php
@@ -222,13 +309,10 @@ To send digest emails via the queue worker, set `digest_queue` to the queue name
 ```
 
 ```env
-# .env
 EMAIL_PREFERENCES_DIGEST_QUEUE=emails
 ```
 
-When set, the package calls `Mail::to()->queue()` instead of `send()`. The mailable must use the `Queueable` trait (the built-in `DigestMail` already does).
-
-### Running the command manually
+### Running digests manually
 
 ```bash
 php artisan email-preferences:send-digests daily
@@ -237,10 +321,10 @@ php artisan email-preferences:send-digests weekly
 
 ### Auto-scheduling
 
-When `auto_schedule = true` in the config, the commands are scheduled automatically:
+When `auto_schedule = true`, the commands are scheduled automatically:
 
-- Daily digest: every day at 08:00
-- Weekly digest: every Monday at 08:00
+- Daily: every day at 08:00
+- Weekly: every Monday at 08:00
 
 Override via environment variables:
 
@@ -248,6 +332,8 @@ Override via environment variables:
 EMAIL_PREFERENCES_DAILY_SCHEDULE="0 9 * * *"
 EMAIL_PREFERENCES_WEEKLY_SCHEDULE="0 9 * * 1"
 ```
+
+---
 
 ## Managing Preferences Programmatically
 
@@ -260,6 +346,8 @@ $user->setEmailFrequency('digest', 'weekly');
 $user->subscribe('marketing', 'admin');
 $user->unsubscribe('marketing', 'admin');
 ```
+
+---
 
 ## GDPR Consent Log
 
@@ -276,6 +364,8 @@ $log->created_at;
 
 $user->emailPreferenceLogs()->forCategory('marketing')->get();
 ```
+
+---
 
 ## License
 
