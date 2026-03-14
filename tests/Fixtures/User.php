@@ -14,4 +14,5 @@ class User extends Model
     protected $table = 'users';
     protected $guarded = [];
     public $timestamps = false;
+    protected $attributes = ['email' => 'user@example.com'];
 }

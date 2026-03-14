@@ -89,6 +89,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Digest Mailable
+    |--------------------------------------------------------------------------
+    | The fully-qualified class name of the Mailable to send when a digest is
+    | ready. The class must accept (mixed $notifiable, Collection $items,
+    | string $frequency) in its constructor.
+    |
+    | Defaults to the package's built-in DigestMail. Publish and override:
+    |   php artisan vendor:publish --tag=email-preferences-digest
+    */
+    'digest_mailable' => \Lchris44\EmailPreferenceCenter\Mail\DigestMail::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Digest Queue
+    |--------------------------------------------------------------------------
+    | Set to a queue name (e.g. 'emails') to dispatch digest mails via the
+    | queue worker. null sends synchronously (default).
+    */
+    'digest_queue' => env('EMAIL_PREFERENCES_DIGEST_QUEUE', null),
+
+    /*
+    |--------------------------------------------------------------------------
     | Dashboard
     |--------------------------------------------------------------------------
     | Route settings for the preference center page.

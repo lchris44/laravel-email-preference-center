@@ -3,9 +3,12 @@
 namespace Lchris44\EmailPreferenceCenter;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Lchris44\EmailPreferenceCenter\Console\Commands\SendDigestsCommand;
+use Lchris44\EmailPreferenceCenter\Events\DigestReadyToSend;
+use Lchris44\EmailPreferenceCenter\Listeners\SendDigestListener;
 use Lchris44\EmailPreferenceCenter\Support\CategoryRegistry;
 
 class EmailPreferenceCenterServiceProvider extends ServiceProvider
@@ -31,14 +34,21 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
     {
         $this->registerPublishables();
         $this->registerViews();
+        $this->registerMigrations();
         $this->registerRoutes();
         $this->registerCommands();
         $this->registerSchedule();
+        $this->registerDigestListener();
     }
 
     protected function registerViews(): void
     {
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'email-preferences');
+    }
+
+    protected function registerMigrations(): void
+    {
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
     }
 
     protected function registerRoutes(): void
@@ -74,6 +84,11 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
         });
     }
 
+    protected function registerDigestListener(): void
+    {
+        Event::listen(DigestReadyToSend::class, SendDigestListener::class);
+    }
+
     protected function registerPublishables(): void
     {
         if (! $this->app->runningInConsole()) {
@@ -91,6 +106,11 @@ class EmailPreferenceCenterServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../resources/views/' => resource_path('views/vendor/email-preferences'),
         ], 'email-preferences-views');
+
+        $this->publishes([
+            __DIR__ . '/../src/Mail/DigestMail.php'              => app_path('Mail/DigestMail.php'),
+            __DIR__ . '/../resources/views/emails/digest.blade.php' => resource_path('views/emails/digest.blade.php'),
+        ], 'email-preferences-digest');
 
         $this->publishes([
             __DIR__ . '/../routes/web.php' => base_path('routes/email-preferences.php'),

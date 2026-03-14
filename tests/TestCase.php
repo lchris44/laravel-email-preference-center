@@ -29,6 +29,7 @@ class TestCase extends Orchestra
         \Illuminate\Support\Facades\Schema::create('users', function (\Illuminate\Database\Schema\Blueprint $table) {
             $table->id();
             $table->string('name')->default('Test User');
+            $table->string('email')->default('user@example.com');
         });
     }
 

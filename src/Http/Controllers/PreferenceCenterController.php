@@ -37,7 +37,7 @@ class PreferenceCenterController extends Controller
                 'required'    => $def['required'] ?? false,
                 'frequencies' => $def['frequency'] ?? null,
                 'subscribed'  => $notifiable->prefersEmail($key),
-                'frequency'   => $notifiable->emailFrequency($key),
+                'frequency'   => $notifiable->prefersEmail($key) ? $notifiable->emailFrequency($key) : 'never',
             ];
         })->values();
 
@@ -71,18 +71,23 @@ class PreferenceCenterController extends Controller
                 continue;
             }
 
-            $subscribed = $request->boolean("categories.{$key}");
-
-            if ($subscribed) {
-                $notifiable->subscribe($key, 'preference_center');
-            } else {
-                $notifiable->unsubscribe($key, 'preference_center');
-            }
-
             if ($this->registry->supportsFrequency($key) && $request->filled("frequencies.{$key}")) {
                 $frequency = $request->input("frequencies.{$key}");
                 if (in_array($frequency, $this->registry->allowedFrequencies($key), true)) {
-                    $notifiable->setEmailFrequency($key, $frequency, 'preference_center');
+                    if ($frequency === 'never') {
+                        $notifiable->unsubscribe($key, 'preference_center');
+                    } else {
+                        $notifiable->subscribe($key, 'preference_center');
+                        $notifiable->setEmailFrequency($key, $frequency, 'preference_center');
+                    }
+                }
+            } else {
+                $subscribed = $request->boolean("categories.{$key}");
+
+                if ($subscribed) {
+                    $notifiable->subscribe($key, 'preference_center');
+                } else {
+                    $notifiable->unsubscribe($key, 'preference_center');
                 }
             }
         }
