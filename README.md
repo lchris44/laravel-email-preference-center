@@ -1,10 +1,24 @@
-# Laravel Email Preference Center
+<p align="center">
+  <img src="docs/logo.png" width="400" alt="Laravel Email Preference Center">
+</p>
 
-A complete, drop-in email preference management system for Laravel. Give your users full control over which emails they receive and how often — with one-click unsubscribe, GDPR-compliant audit logs, and digest batching out of the box.
+<p align="center">
+  <strong>A complete, drop-in email preference management system for Laravel applications</strong>
+</p>
 
-[![Latest Version](https://img.shields.io/packagist/v/lchris44/laravel-email-preference-center.svg)](https://packagist.org/packages/lchris44/laravel-email-preference-center)
-[![Total Downloads](https://img.shields.io/packagist/dt/lchris44/laravel-email-preference-center.svg)](https://packagist.org/packages/lchris44/laravel-email-preference-center)
-[![License](https://img.shields.io/packagist/l/lchris44/laravel-email-preference-center.svg)](https://packagist.org/packages/lchris44/laravel-email-preference-center)
+<p align="center">Stop losing subscribers to a binary unsubscribe — let users choose exactly what lands in their inbox.</p>
+
+<p align="center">
+  <a href="https://packagist.org/packages/lchris44/laravel-email-preference-center">
+    <img src="https://img.shields.io/packagist/v/lchris44/laravel-email-preference-center.svg" alt="Latest Version">
+  </a>
+  <a href="https://packagist.org/packages/lchris44/laravel-email-preference-center">
+    <img src="https://img.shields.io/packagist/dt/lchris44/laravel-email-preference-center.svg" alt="Total Downloads">
+  </a>
+  <a href="https://packagist.org/packages/lchris44/laravel-email-preference-center">
+    <img src="https://img.shields.io/packagist/l/lchris44/laravel-email-preference-center.svg" alt="License">
+  </a>
+</p>
 
 ---
 
