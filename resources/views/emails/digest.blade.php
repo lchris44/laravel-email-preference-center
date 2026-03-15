@@ -20,15 +20,37 @@
         </div>
 
         @foreach($items as $item)
-            @php $payload = is_array($item->payload) ? $item->payload : []; @endphp
+            @php
+                $payload = is_array($item->payload) ? $item->payload : [];
+
+                // Support both payload shapes:
+                // - Channel shape: subject, intro_lines, outro_lines, action_text, action_url
+                // - Manual shape:  title, body
+                $heading     = $payload['subject']     ?? $payload['title'] ?? null;
+                $introLines  = $payload['intro_lines'] ?? (isset($payload['body']) ? [$payload['body']] : []);
+                $outroLines  = $payload['outro_lines'] ?? [];
+                $actionText  = $payload['action_text'] ?? null;
+                $actionUrl   = $payload['action_url']  ?? null;
+            @endphp
 
             <div style="padding: 1rem; margin-bottom: 1rem; border-radius: 8px; background: #f8fafc; border-left: 3px solid #2563eb;">
-                @if(!empty($payload['title']))
-                    <div style="font-weight: 600; font-size: .95rem; margin-bottom: .3rem;">{{ $payload['title'] }}</div>
+                @if($heading)
+                    <div style="font-weight: 600; font-size: .95rem; margin-bottom: .5rem;">{{ $heading }}</div>
                 @endif
-                @if(!empty($payload['body']))
-                    <div style="font-size: .875rem; color: #444; line-height: 1.5;">{{ $payload['body'] }}</div>
+
+                @foreach($introLines as $line)
+                    <div style="font-size: .875rem; color: #444; line-height: 1.5; margin-bottom: .25rem;">{{ $line }}</div>
+                @endforeach
+
+                @if($actionText && $actionUrl)
+                    <a href="{{ $actionUrl }}" style="display: inline-block; margin-top: .75rem; padding: .4rem .9rem; background: #2563eb; color: #fff; border-radius: 5px; font-size: .8rem; font-weight: 600; text-decoration: none;">
+                        {{ $actionText }}
+                    </a>
                 @endif
+
+                @foreach($outroLines as $line)
+                    <div style="font-size: .8rem; color: #888; line-height: 1.5; margin-top: .5rem;">{{ $line }}</div>
+                @endforeach
             </div>
         @endforeach
 
