@@ -1,6 +1,8 @@
-# laravel-email-preference-center
+# Laravel Email Preference Center
 
-Give your users control over which emails they receive and how often, with one-click unsubscribe and a self-service preference center. No login required.
+A drop-in email preference center for Laravel applications that allows users to manage email categories, notification frequency, and unsubscribe preferences while staying compliant with modern email standards.
+
+Perfect for SaaS apps, newsletters, and platforms that send many types of emails.
 
 [![Latest Version](https://img.shields.io/packagist/v/lchris44/laravel-email-preference-center.svg)](https://packagist.org/packages/lchris44/laravel-email-preference-center)
 [![Total Downloads](https://img.shields.io/packagist/dt/lchris44/laravel-email-preference-center.svg)](https://packagist.org/packages/lchris44/laravel-email-preference-center)
@@ -8,42 +10,167 @@ Give your users control over which emails they receive and how often, with one-c
 
 ![Demo](docs/demo.gif)
 
+---
+
 ## Documentation
 
+- [Features](#features)
+- [Requirements](#requirements)
 - [Installation](#installation)
 - [Setup](#setup)
 - [Notification Channel](#notification-channel)
-- [Checking Preferences Manually](#checking-preferences-manually)
 - [Unsubscribe Links and Headers](#unsubscribe-links-and-headers)
 - [Preference Center](#preference-center)
 - [Digest Batching](#digest-batching)
 - [Managing Preferences Programmatically](#managing-preferences-programmatically)
 - [GDPR Consent Log](#gdpr-consent-log)
 
-## Features
+---
 
-- **Notification channel** — swap `'mail'` for `'email-preferences'` and the package handles the rest
-- **Category declaration** via PHP attribute, interface, or config map — category lives with the notification
-- Per-category email preferences with required (locked) and optional categories
-- Frequency controls per category: instant, daily digest, weekly digest, or never
-- One-click unsubscribe via signed URLs, no login required
-- Automatic `List-Unsubscribe` and `List-Unsubscribe-Post` headers (Gmail/Yahoo 2024 compliance)
-- Built-in digest batching — one call handles instant send and daily/weekly queuing
-- Queue support for digest emails
-- GDPR consent log — every change recorded with timestamp, IP, and source
-- Self-service preference center UI included
-- Works with any notifiable model, not just `User`
+# Features
+
+## Email Preference Categories
+
+Define multiple email categories:
+
+- marketing emails
+- product updates
+- newsletters
+- security alerts
+- system notifications
+
+Users can enable or disable each category individually.
+
+## Frequency Control
+
+Users can control how often they receive emails.
+
+Supported frequencies:
+
+- Instant
+- Daily Digest
+- Weekly Digest
+- Never
+
+Your application automatically respects these preferences.
+
+## Digest Engine
+
+The package includes a built-in digest system that batches notifications.
+
+Example:
+
+Instead of sending:
+
+```
+10 notifications today
+```
+
+Users receive:
+
+```
+Daily summary email
+```
+
+This reduces inbox spam and improves user experience.
+
+## Blade Preference Center UI
+
+The package includes a ready-to-use Blade interface. Developers can add a preference center to their application with minimal effort.
+
+Route:
+
+```
+/email-preferences
+```
+
+Users can:
+
+- toggle email categories
+- select notification frequency
+- unsubscribe from emails
+
+## One-Click Unsubscribe
+
+Emails include secure unsubscribe links using signed URLs.
+
+Route:
+
+```
+/unsubscribe/{token}
+```
+
+Users can instantly unsubscribe without logging in.
+
+## List-Unsubscribe Email Headers
+
+The package automatically adds `List-Unsubscribe` headers to outgoing emails.
+
+Benefits:
+
+- Gmail and other providers show an unsubscribe button
+- improves email deliverability
+- required for bulk email compliance
+
+## GDPR Consent Logging
+
+The package logs every user preference change.
+
+Example:
+
+```
+User enabled marketing emails
+User disabled product updates
+User unsubscribed from all emails
+```
+
+This helps with:
+
+- GDPR compliance
+- auditing
+- debugging user issues
+
+## Laravel Notification Integration
+
+The package works seamlessly with Laravel notifications. Swap `'mail'` for `'email-preferences'` in your notification's `via()` method and the package handles the rest — checking preferences, routing to digest, or dropping silently.
+
+```php
+#[EmailCategory('marketing')]
+class NewsletterNotification extends Notification
+{
+    public function via(object $notifiable): array
+    {
+        return ['email-preferences'];
+    }
+}
+```
+
+Or check preferences manually when sending via `Mail::`:
+
+```php
+if ($user->prefersEmail('marketing')) {
+    Mail::to($user)->send(new MarketingEmail());
+}
+```
+
+---
 
 ## Requirements
 
 - PHP 8.2+
 - Laravel 10, 11, or 12
 
+---
+
 ## Installation
+
+Install via Composer:
 
 ```bash
 composer require lchris44/laravel-email-preference-center
 ```
+
+Publish configuration and run migrations:
 
 ```bash
 php artisan vendor:publish --tag=email-preferences-config
@@ -52,9 +179,11 @@ php artisan migrate
 
 > Migrations run automatically from the package. No need to publish them unless you want to modify the schema.
 
+---
+
 ## Setup
 
-### 1. Add the trait to your User model
+### Add the trait to your User model
 
 ```php
 use Lchris44\EmailPreferenceCenter\Traits\HasEmailPreferences;
@@ -65,7 +194,7 @@ class User extends Authenticatable
 }
 ```
 
-### 2. Define your categories
+### Define your categories
 
 In `config/email-preferences.php`:
 
@@ -74,7 +203,7 @@ In `config/email-preferences.php`:
     'security' => [
         'label'       => 'Security Alerts',
         'description' => 'Password changes and new login alerts.',
-        'required'    => true, // cannot be unsubscribed
+        'required'    => true,
     ],
     'digest' => [
         'label'       => 'Activity Digest',
@@ -94,18 +223,14 @@ In `config/email-preferences.php`:
 
 ## Notification Channel
 
-The package registers an `'email-preferences'` notification channel. Swap it in place of `'mail'` and the package automatically:
+The package registers an `'email-preferences'` channel. Use it in place of `'mail'` and the package automatically:
 
-- Checks whether the user has opted out of that category
-- Sends immediately if their frequency is `instant`
-- Queues into the digest pipeline if their frequency is `daily` or `weekly`
-- Silently drops the notification if they've unsubscribed or set frequency to `never`
-
-You write zero preference-checking logic.
+- checks whether the user has opted out of that category
+- sends immediately if their frequency is `instant`
+- queues into the digest pipeline if their frequency is `daily` or `weekly`
+- silently drops the notification if they have unsubscribed or set frequency to `never`
 
 ### Declare a category on your notification
-
-Choose whichever approach fits your style. All three are equivalent.
 
 **Option 1 — PHP attribute** *(recommended)*
 
@@ -175,33 +300,6 @@ $user->notify(new NewsletterNotification())
               └─ frequency = 'daily' / 'weekly' ──────► queue into digest pipeline
 ```
 
-### Notifications without a category
-
-If a notification has no category declared (no attribute, interface, or config map entry), the channel falls through to normal mail sending. Existing notifications without a category are never broken.
-
-### Notifications that return a Mailable
-
-If `toMail()` returns a `Mailable` instance instead of a `MailMessage`, the notification is always sent immediately — `Mailable` instances cannot be serialized into the digest pipeline.
-
----
-
-## Checking Preferences Manually
-
-If you are sending via `Mail::to()->send()` directly rather than through the notification channel, check preferences yourself before sending:
-
-```php
-$user->prefersEmail('marketing');       // true or false
-$user->emailFrequency('digest');        // 'instant', 'daily', 'weekly', or 'never'
-```
-
-```php
-if (! $user->prefersEmail('marketing')) {
-    return;
-}
-
-Mail::to($user)->send(new MarketingMail($user));
-```
-
 ---
 
 ## Unsubscribe Links and Headers
@@ -224,16 +322,7 @@ class MarketingMail extends Mailable
 }
 ```
 
-This injects two headers into every outgoing email:
-
-```
-List-Unsubscribe: <https://yourapp.com/email-preferences/unsubscribe?...&signature=...>
-List-Unsubscribe-Post: List-Unsubscribe=One-Click
-```
-
-Gmail and Apple Mail show an "Unsubscribe" button. One-click POST unsubscribe is handled automatically.
-
-The `$unsubscribeUrl` variable is available in your Blade view:
+Gmail and Apple Mail will show an "Unsubscribe" button. The `$unsubscribeUrl` variable is also available in your Blade view:
 
 ```blade
 <a href="{!! $unsubscribeUrl !!}">Unsubscribe</a>
@@ -259,33 +348,11 @@ $url = SignedUnsubscribeUrl::generateForCenter($user);
 php artisan vendor:publish --tag=email-preferences-views
 ```
 
-This copies the view to `resources/views/vendor/email-preferences/preference-center.blade.php`.
-
 ---
 
 ## Digest Batching
 
-The package handles the entire digest pipeline. One call routes each user to an immediate send or a scheduled batch based on their chosen frequency.
-
-> If you are using the **notification channel**, the digest pipeline is wired automatically — `DigestQueue::dispatch()` is called for you when a user's frequency is `daily` or `weekly`. The steps below apply when dispatching digest items directly, without a notification.
-
-### 1. Set the mailable
-
-In `config/email-preferences.php`:
-
-```php
-'digest_mailable' => \Lchris44\EmailPreferenceCenter\Mail\DigestMail::class,
-```
-
-The mailable must accept `(mixed $notifiable, Collection $items, string $frequency)`.
-
-Publish the default mail and view to customise them:
-
-```bash
-php artisan vendor:publish --tag=email-preferences-digest
-```
-
-### 2. Dispatch items from your listener
+The package handles the entire digest pipeline. If you are using the notification channel, this is wired automatically. To dispatch digest items directly:
 
 ```php
 use Lchris44\EmailPreferenceCenter\Support\DigestQueue;
@@ -294,22 +361,6 @@ DigestQueue::dispatch($user, 'digest', 'your_type', [
     'title' => $event->title,
     'body'  => $event->body,
 ]);
-```
-
-`DigestQueue::dispatch()` handles everything:
-- Skips users who have opted out
-- **Instant** — saves the item and fires `DigestReadyToSend` immediately
-- **Daily / Weekly** — saves the item; the scheduled command sends it later
-
-### Queue support
-
-```php
-// config/email-preferences.php
-'digest_queue' => env('EMAIL_PREFERENCES_DIGEST_QUEUE', null),
-```
-
-```env
-EMAIL_PREFERENCES_DIGEST_QUEUE=emails
 ```
 
 ### Running digests manually
@@ -367,6 +418,42 @@ $user->emailPreferenceLogs()->forCategory('marketing')->get();
 
 ---
 
+## Example Workflow
+
+1. Application sends a notification
+2. Package checks user preferences
+3. System determines delivery method:
+   - Instant email
+   - Daily digest
+   - Weekly digest
+   - Blocked
+
+This ensures users only receive emails they want.
+
+---
+
+## Use Cases
+
+This package is useful for:
+
+- SaaS applications
+- community platforms
+- marketplaces
+- newsletters
+- membership sites
+
+---
+
+## Contributing
+
+Contributions are welcome. If you discover bugs or want to improve the package, feel free to submit a pull request.
+
+---
+
 ## License
 
-MIT - [Lenos Christodoulou](https://github.com/lchris44)
+MIT — [Lenos Christodoulou](https://github.com/lchris44)
+
+---
+
+If you find this package useful, consider starring the repository.
