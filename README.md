@@ -10,6 +10,8 @@ Perfect for SaaS apps, newsletters, and platforms that send many types of emails
 
 ![Demo](docs/demo.gif)
 
+**[Live Demo](https://darkorchid-spoonbill-752711.hostingersite.com/)** — interactive demo app with pre-seeded users, all package features, and a live event feed. Source: [laravel-email-preference-center-demo](https://github.com/lchris44/laravel-email-preference-center-demo).
+
 ---
 
 ## Documentation
