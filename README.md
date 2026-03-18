@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://packagist.org/packages/lchris44/laravel-email-preference-center" style="text-decoration:none"><img src="https://img.shields.io/packagist/v/lchris44/laravel-email-preference-center.svg" alt="Latest Version"></a>
-  <a href="https://packagist.org/packages/lchris44/laravel-email-preference-center" style="text-decoration:none"><img src="https://img.shields.io/packagist/dt/lchris44/laravel-email-preference-center.svg" alt="Total Downloads"></a>
+  <a href="https://github.com/lchris44/laravel-email-preference-center/actions/workflows/run-tests.yml" style="text-decoration:none"><img src="https://github.com/lchris44/laravel-email-preference-center/actions/workflows/run-tests.yml/badge.svg" alt="Tests"></a>
   <a href="https://packagist.org/packages/lchris44/laravel-email-preference-center" style="text-decoration:none"><img src="https://img.shields.io/packagist/l/lchris44/laravel-email-preference-center.svg" alt="License"></a>
 </p>
 
