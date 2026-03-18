@@ -2,6 +2,12 @@
 
 All notable changes to `laravel-email-preference-center` will be documented in this file.
 
+## [v1.3.0](https://github.com/lchris44/laravel-email-preference-center/releases/tag/v1.3.0) - 2026-03-18
+
+### Added
+- Laravel 13 support
+- PHP 8.4 support
+
 ## [1.2.0] - 2026-03-15
 
 ### Added
